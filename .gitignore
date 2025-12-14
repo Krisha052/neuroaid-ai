@@ -1,0 +1,17 @@
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# Audio files
+*.wav
+*.mp3
+
+# Env vars
+.env
+
