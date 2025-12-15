@@ -1,0 +1,33 @@
+# NeuroAid AI - Sample Prompts (MVP)
+# Keep prompts short, age-appropriate, and phonetically informative.
+
+[WORD_LIST_LEVEL_1]
+cat
+sun
+fish
+jump
+stop
+milk
+tree
+book
+play
+ship
+
+[WORD_LIST_LEVEL_2]
+market
+plastic
+bedroom
+picture
+basket
+reading
+garden
+teacher
+holiday
+problem
+
+[SENTENCES_SHORT]
+The cat sat on the mat.
+I like to read a book.
+We went to the park today.
+My friend has a red bike.
+Please close the door.

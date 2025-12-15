@@ -1,0 +1,15 @@
+streamlit==1.52.1
+gradio==6.1.0
+
+openai-whisper
+torch
+numpy
+pandas
+scikit-learn
+spacy
+pydub
+cmudict
+
+reportlab
+joblib
+pytest

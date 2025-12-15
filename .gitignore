@@ -1,17 +1,33 @@
-# Virtual environment
-venv/
-
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
 
-# OS
-.DS_Store
-
-# Audio files
-*.wav
-*.mp3
-
-# Env vars
+# Virtual env / secrets
+venv/
 .env
+.env.*
 
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data: never commit real student audio
+data/sample_audio/*
+!data/sample_audio/.gitkeep
+
+# Models / reports
+*.joblib
+*.pkl
+reports/
+*.pdf
+
+# Streamlit
+.streamlit/
