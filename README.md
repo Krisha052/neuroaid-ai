@@ -1,4 +1,4 @@
-# NeuroAid AI
+# NeuroAid A
 
 AI-powered dyslexia pre-screener using speech recognition and phoneme analysis.
 
