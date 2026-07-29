@@ -26,3 +26,8 @@ CONFIG = AppConfig()
 # Where the Streamlit demo client reaches the Flask API. Override for Docker/remote setups.
 API_BASE_URL = os.environ.get("NEUROAID_API_BASE_URL", "http://localhost:8000")
 
+# Agent orchestration (src/agent/): no default/hardcoded key -- unset means
+# /api/v1/agent/screen returns 503 rather than the app crashing.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+AGENT_MODEL = os.environ.get("NEUROAID_AGENT_MODEL", "claude-sonnet-4-5")
+
