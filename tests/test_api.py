@@ -69,3 +69,16 @@ def test_screen_rejects_non_wav_bytes(client):
         content_type="multipart/form-data",
     )
     assert resp.status_code == 422
+
+def test_agent_screen_returns_503_without_api_key(client, monkeypatch):
+    # Patch the already-imported binding directly rather than the env var,
+    # so this test is deterministic regardless of the developer's shell.
+    monkeypatch.setattr("src.agent.orchestrator.ANTHROPIC_API_KEY", None)
+    with open(REAL_SAMPLE, "rb") as f:
+        resp = client.post(
+            "/api/v1/agent/screen",
+            data={"file": (f, "sample.wav"), "prompt_text": "hello world"},
+            content_type="multipart/form-data",
+        )
+    assert resp.status_code == 503
+    assert resp.get_json()["type"] == "AgentNotConfiguredError"
