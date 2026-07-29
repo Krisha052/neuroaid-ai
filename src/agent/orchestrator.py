@@ -5,7 +5,12 @@ from typing import Any, Dict, List, Protocol
 
 from src.config import AGENT_MODEL, ANTHROPIC_API_KEY
 
-from .errors import AgentError, AgentNotConfiguredError, MaxIterationsExceededError
+from .errors import (
+    AgentError,
+    AgentNotConfiguredError,
+    AgentUpstreamError,
+    MaxIterationsExceededError,
+)
 from .tools import TOOL_EXECUTORS, TOOL_SCHEMAS, ScreeningContext
 
 logger = logging.getLogger("neuroaid.agent")
@@ -56,13 +61,20 @@ def run_agentic_screening(
     ]
 
     for iteration in range(MAX_ITERATIONS):
-        response = client.messages.create(
-            model=AGENT_MODEL,
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            tools=TOOL_SCHEMAS,
-            messages=messages,
-        )
+        try:
+            response = client.messages.create(
+                model=AGENT_MODEL,
+                max_tokens=1024,
+                system=SYSTEM_PROMPT,
+                tools=TOOL_SCHEMAS,
+                messages=messages,
+            )
+        except Exception as exc:
+            import anthropic
+            if isinstance(exc, anthropic.APIError):
+                logger.error("Anthropic API error: %s", exc)
+                raise AgentUpstreamError(f"Anthropic API error: {exc}") from exc
+            raise
 
         tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
         messages.append({"role": "assistant", "content": response.content})
