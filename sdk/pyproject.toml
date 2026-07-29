@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neuroaid-client"
+version = "0.1.0"
+description = "Typed client SDK for the NeuroAid AI screening API"
+requires-python = ">=3.9"
+dependencies = ["requests"]
+
+[tool.setuptools]
+packages = ["neuroaid_client"]

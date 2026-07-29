@@ -3,11 +3,13 @@ import logging
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 
+from src.agent.orchestrator import build_anthropic_client, run_agentic_screening
+from src.audio.recorder import ephemeral_audio_file
 from src.config import CONFIG
 from src.utils.pdf_report import export_pdf_report
 
 from .errors import ScreeningError
-from .service import load_prompts, resolve_prompt_text, run_screening
+from .service import _validate_upload, load_prompts, resolve_prompt_text, run_screening
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neuroaid.api")
@@ -41,6 +43,30 @@ def create_app() -> Flask:
 
         resolved_prompt = resolve_prompt_text(prompt_set, prompt_text)
         result = run_screening(file.read(), resolved_prompt, transcription_mode=mode)
+        return jsonify(result)
+
+    @app.post("/api/v1/agent/screen")
+    def agent_screen():
+        if "file" not in request.files:
+            return _error_response(
+                ScreeningError("No 'file' field in multipart form data."), 400
+            )
+        file = request.files["file"]
+        if file.filename == "":
+            return _error_response(ScreeningError("Empty filename."), 400)
+
+        prompt_set = request.form.get("prompt_set")
+        prompt_text = request.form.get("prompt_text")
+        mode = request.form.get("transcription_mode", "local")
+        resolved_prompt = resolve_prompt_text(prompt_set, prompt_text)
+
+        client = build_anthropic_client()  # raises AgentNotConfiguredError -> 503 if unset
+
+        data = file.read()
+        _validate_upload(data)
+        with ephemeral_audio_file(data) as audio_path:
+            result = run_agentic_screening(client, audio_path, resolved_prompt,
+                                            transcription_mode=mode)
         return jsonify(result)
 
     @app.post("/api/v1/screen/report")
