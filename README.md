@@ -31,6 +31,7 @@ PYTHONPATH=. streamlit run src/web/app_streamlit.py
 - CMU Pronouncing Dictionary (phoneme mismatch proxy)
 - librosa (MFCC + pause-ratio acoustic features)
 - scikit-learn (RandomForestClassifier risk model)
+- Anthropic Claude (agent orchestration, tool use) -- optional, see below
 - Streamlit (thin demo client over the API)
 
 ## Architecture
@@ -50,6 +51,7 @@ cd neuroaid-ai
 python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install -e sdk/
 python -m spacy download en_core_web_sm
 ```
 
@@ -101,6 +103,35 @@ Errors are typed and return the appropriate HTTP status (400 invalid input,
 413 payload too large, 422 unprocessable audio, 500 internal error) with a
 JSON body of `{"error": ..., "type": ...}`.
 
+## Agent orchestration + SDK
+
+`POST /api/v1/agent/screen` (same multipart input as `/screen`) wraps the
+pipeline in an Anthropic Claude agent that uses tool-use to call
+`transcribe` -> `extract_features` -> `predict_risk` itself, deciding along
+the way whether to call `recommend_retake` (e.g. on an empty transcript or a
+tool failure) instead of forcing an assessment, and synthesizing its own
+plain-language explanation via `finalize_assessment` rather than a static
+template. See [`docs/DESIGN.md`](docs/DESIGN.md#agent-orchestration-srcagent)
+for the full design.
+
+Requires `ANTHROPIC_API_KEY` (see `.env.example`); without it, this one
+endpoint returns 503 -- `/api/v1/screen` is unaffected either way, and no
+key is needed to run the rest of the app or its test suite (the agent's
+tests use a scripted fake client, not a real API call).
+
+```bash
+export ANTHROPIC_API_KEY=...
+curl -X POST http://localhost:8000/api/v1/agent/screen \
+  -F "file=@data/sample_audio/real_samples/2277-149896-0033.wav" \
+  -F "prompt_text=then he rang the bell no answer"
+```
+
+A typed client SDK lives in [`sdk/`](sdk/README.md) (`pip install -e sdk/`)
+so any downstream consumer -- your own code, or another LLM agent via the
+included Anthropic/OpenAI tool-use schema -- can call the API reliably
+(typed errors, retry/backoff). `sdk/examples/downstream_llm_demo.py` is a
+runnable, independent Claude call consuming it as a tool.
+
 ## Privacy
 Uploaded audio is written to a private temp file for the duration of a single
 request and deleted immediately afterward -- nothing is persisted server-side
@@ -136,10 +167,12 @@ a sanity-check retrain of the ML pipeline, and a Docker build on every push/PR.
 
 ## Project layout
 - `src/api` -- Flask app, request validation, typed errors
+- `src/agent` -- Claude tool-use orchestration for `/api/v1/agent/screen`
 - `src/audio` -- ephemeral upload handling, diagnostics, MFCC/pause features
 - `src/speech_to_text` -- Whisper wrapper, text cleaning
 - `src/nlp` -- CMU phoneme mapping, spaCy pipeline, feature extraction
 - `src/model` -- training + prediction (plain-language risk assessment)
 - `src/web` -- Streamlit demo client
+- `sdk/` -- typed client SDK + LLM tool-use schema for downstream consumers
 - `scripts/` -- synthetic training-data generation, training CLI
 - `docs/` -- design, ethics/privacy, pilot protocol
