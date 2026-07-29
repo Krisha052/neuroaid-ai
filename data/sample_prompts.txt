@@ -31,3 +31,9 @@ I like to read a book.
 We went to the park today.
 My friend has a red bike.
 Please close the door.
+
+# Matches data/sample_audio/real_samples/2277-149896-0033.wav exactly, so
+# uploading that clip against this prompt demonstrates a clean, correct
+# low-error-rate result (see README demo / docs/DESIGN.md).
+[LIBRISPEECH_SAMPLE_DEMO]
+Then he rang the bell. No answer.

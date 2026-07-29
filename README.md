@@ -10,6 +10,20 @@ assessment -- served as a Flask REST API, with a Streamlit demo client.
 model-validity disclosures -- in particular, the risk model is trained on
 **synthetic labels**, not real clinical data (explained below).
 
+## Demo
+
+![NeuroAid AI demo: upload a reading sample, get a transcript and a plain-language risk assessment](docs/assets/demo.gif)
+
+Uploading `data/sample_audio/real_samples/2277-149896-0033.wav` against the
+matching `LIBRISPEECH_SAMPLE_DEMO` prompt (see `data/sample_prompts.txt`) --
+real Whisper transcription, real feature extraction, and a real risk
+assessment from the checked-in model, end to end through the Streamlit
+client and Flask API. Reproduce it yourself:
+```bash
+gunicorn --bind=0.0.0.0:8000 wsgi:app &
+PYTHONPATH=. streamlit run src/web/app_streamlit.py
+```
+
 ## Tech stack
 - Python 3.11, Flask + gunicorn (REST API), Docker
 - OpenAI Whisper (local transcription)
