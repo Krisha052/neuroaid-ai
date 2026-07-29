@@ -12,3 +12,8 @@ class AgentNotConfiguredError(AgentError):
 class MaxIterationsExceededError(AgentError):
     """Agent didn't reach a terminal tool call within the iteration budget."""
     status_code = 502
+
+class AgentUpstreamError(AgentError):
+    """The Anthropic API itself returned an error (auth, billing, rate limit,
+    outage, ...) -- distinct from a bug in our own orchestration code."""
+    status_code = 502
