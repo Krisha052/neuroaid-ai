@@ -57,8 +57,11 @@ gunicorn --bind=0.0.0.0:8000 wsgi:app
 
 **Streamlit demo client** (in a separate terminal, API must be running):
 ```bash
-streamlit run src/web/app_streamlit.py
+PYTHONPATH=. streamlit run src/web/app_streamlit.py
 ```
+(`PYTHONPATH=.` is required -- Streamlit doesn't add the repo root to
+`sys.path` on its own, so `from src.config import ...` would otherwise fail
+with `ModuleNotFoundError: No module named 'src'`.)
 
 **Docker** (runs the API):
 ```bash
