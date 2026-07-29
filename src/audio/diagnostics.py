@@ -1,5 +1,6 @@
-from pathlib import Path
 import wave
+from pathlib import Path
+
 
 def wav_info(path: Path) -> dict:
     with wave.open(str(path), "rb") as wf:

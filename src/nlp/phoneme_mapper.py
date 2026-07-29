@@ -1,12 +1,18 @@
+from functools import lru_cache
 from typing import List, Optional
+
+
+@lru_cache(maxsize=1)
+def _dict():
+    """CMU Pronouncing Dictionary, loaded once per process rather than per word."""
+    import cmudict
+    return cmudict.dict()
 
 def word_to_phonemes(word: str) -> Optional[List[str]]:
     """
     Return first CMU pronunciation (ARPABET phones) for a word if available.
     """
-    import cmudict
-    d = cmudict.dict()
-    pronunciations = d.get(word.lower())
+    pronunciations = _dict().get(word.lower())
     if not pronunciations:
         return None
     return pronunciations[0]

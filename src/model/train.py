@@ -1,10 +1,12 @@
 from pathlib import Path
-from typing import Tuple
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+
 from .model_utils import save_model
+
 
 def train_from_csv(csv_path: Path, model_out: Path) -> None:
     """

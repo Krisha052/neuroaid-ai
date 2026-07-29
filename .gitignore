@@ -19,13 +19,22 @@ venv/
 # Notebooks
 .ipynb_checkpoints/
 
-# Data: never commit real student audio
+# Data: never commit real *user-uploaded* audio (uploads are ephemeral anyway, see
+# src/audio/recorder.py). The checked-in real_samples/ are small CC-BY-licensed
+# LibriSpeech clips used for demos/tests/synthetic-label generation, not user data.
 data/sample_audio/*
 !data/sample_audio/.gitkeep
+!data/sample_audio/real_samples/
+!data/sample_audio/real_samples/**
 
-# Models / reports
+# Generated training data is regenerable via scripts/generate_training_data.py
+data/generated/*.csv
+
+# Models / reports: the demo model is intentionally checked in so the API works
+# out of the box (see models/README.md); everything else stays ignored.
 *.joblib
 *.pkl
+!models/risk_model.joblib
 reports/
 *.pdf
 

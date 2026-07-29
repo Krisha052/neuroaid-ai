@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
+
 def ensure_wav_16k_mono(input_path: Path, output_path: Optional[Path] = None) -> Path:
     """
     MVP placeholder.
