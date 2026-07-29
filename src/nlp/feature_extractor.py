@@ -1,6 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from .phoneme_mapper import words_to_phoneme_sequence
+from .spacy_pipeline import word_error_rate
+
 
 @dataclass
 class FeatureResult:
@@ -12,20 +16,12 @@ def estimate_wpm(num_words: int, duration_sec: float) -> float:
         return 0.0
     return (num_words / duration_sec) * 60.0
 
-def simple_word_error_rate(prompt_words: List[str], spoken_words: List[str]) -> float:
-    """
-    MVP proxy: compare overlap ratio (not true alignment).
-    """
-    if not prompt_words:
-        return 0.0
-    prompt_set = set(prompt_words)
-    spoken_set = set(spoken_words)
-    matched = len(prompt_set.intersection(spoken_set))
-    return 1.0 - (matched / max(1, len(prompt_set)))
-
 def phoneme_mismatch_rate(prompt_words: List[str], spoken_words: List[str]) -> float:
     """
     MVP proxy: compare phoneme sequence lengths (not true forced alignment).
+    Real forced phoneme alignment (e.g. via a CTC/Viterbi aligner) would be a
+    stronger signal than this length-difference proxy -- tracked as a known
+    limitation rather than overstated as full alignment.
     """
     p_seq = words_to_phoneme_sequence(prompt_words)
     s_seq = words_to_phoneme_sequence(spoken_words)
@@ -33,20 +29,36 @@ def phoneme_mismatch_rate(prompt_words: List[str], spoken_words: List[str]) -> f
         return 0.0
     return abs(len(p_seq) - len(s_seq)) / float(len(p_seq))
 
-def extract_features(prompt_words: List[str], spoken_words: List[str], duration_sec: float) -> FeatureResult:
+def extract_features(
+    prompt_words: List[str],
+    spoken_words: List[str],
+    duration_sec: float,
+    audio_path: Optional[Path] = None,
+) -> FeatureResult:
     wpm = estimate_wpm(len(spoken_words), duration_sec)
-    wer = simple_word_error_rate(prompt_words, spoken_words)
+    wer = word_error_rate(prompt_words, spoken_words)
     pmr = phoneme_mismatch_rate(prompt_words, spoken_words)
 
     features = {
         "wpm": float(wpm),
-        "word_error_proxy": float(wer),
+        "word_error_rate": float(wer),
         "phoneme_mismatch_proxy": float(pmr),
         "spoken_word_count": float(len(spoken_words)),
         "prompt_word_count": float(len(prompt_words)),
     }
 
     notes = {
-        "mvp_warning": "These are proxy features; upgrade to real alignment for stronger validity."
+        "phoneme_mismatch_proxy_warning": (
+            "phoneme_mismatch_proxy compares phoneme-sequence length, not true "
+            "forced alignment; treat as a coarse signal."
+        )
     }
+
+    if audio_path is not None:
+        from src.audio.acoustic_features import extract_acoustic_features
+        try:
+            features.update(extract_acoustic_features(audio_path))
+        except Exception as exc:
+            notes["acoustic_features_error"] = str(exc)
+
     return FeatureResult(features=features, notes=notes)
